@@ -4,6 +4,10 @@ import os
 def params():
     parser = argparse.ArgumentParser()
     
+    parser.add_argument("--task", default="prediction", type=str,\
+                help="prediction is image age prediction;\n\
+                      segmentation is image semantic segmentation")
+    
     parser.add_argument("--seed", default=42, type=int,
                 help="Seed for random number generator.")
     
