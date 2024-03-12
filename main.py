@@ -4,6 +4,8 @@ from tqdm import tqdm as progress_bar
 from arguments import params
 from utils import setup_gpus, set_seed
 from modelPrediction import PredictionModel
+from torch.utils.data import DataLoader
+import loadData
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -16,25 +18,32 @@ def train_prediction(args, model):
         loss = 0
         model.train()
 
-        for:
-            inputs, labels = 
+        for iter, (inputs, labels) in enumerate(train_loader):
+            model.zero_grad()
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            
             logits = model(inputs)
-            loss = criterion(logits,labels)
+            loss = criterion(logits, labels)
             loss.backward()
+            losses += loss.item()
 
             optimizer.step()
-            model.zero_grad()
-            losses += loss.item()
 
         scheduler.step()
         print('epoch', epoch_count, 'loss:', loss)
         
-        
 if __name__ == "__main__":
-  args = params()
-  args = setup_gpus(args)
-  set_seed(args)
-  
-  if args.task == 'prediction':
-    model = PredictionModel(args).to(device)
-    train_prediction(args, model)
+    args = params()
+    args = setup_gpus(args)
+    set_seed(args)
+    
+    train_dataset = loadData.Dataset(args, 'train')
+    test_dataset = loadData.Dataset(args, 'test')
+    
+    train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False)
+    
+    if args.task == 'prediction':
+        model = PredictionModel(args).to(device)
+        train_prediction(args, model)
