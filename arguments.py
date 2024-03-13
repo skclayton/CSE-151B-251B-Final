@@ -25,6 +25,31 @@ def params():
                 help="Epsilon for Adam optimizer.")
     parser.add_argument("--n-epochs", default=1, type=int,
                 help="Total number of training epochs to perform.")
+    parser.add_argument('--bn-momentum', type=float, default=None,
+                        help='BatchNorm momentum override (if not None)')
+    parser.add_argument('--num-classes', type=int, default=None, metavar='N',
+                        help='number of label classes (Model default if None)')
+    #Optimizer 
+    parser.add_argument('--opt', default='adamw', type=str, metavar='OPTIMIZER',
+                        help='Optimizer (default: "adamw"')
+    parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
+                        help='Optimizer momentum (default: 0.9)')
+    parser.add_argument('--weight-decay', type=float, default=0.05,
+                        help='weight decay (default: 0.05)')
+    #scheduler
+    parser.add_argument('--warmup-lr', type=float, default=0.000001, metavar='LR',
+                        help='warmup learning rate (default: 0.000001)')
+    parser.add_argument('--min-lr', type=float, default=5e-6, metavar='LR',
+                        help='lower lr bound for cyclic schedulers that hit 0 (5e-6)')
+    parser.add_argument('--epochs', type=int, default=300, metavar='N',
+                        help='number of epochs to train (default: 300)')
+    parser.add_argument('--decay-epochs', type=float, default=100, metavar='N',
+                        help='epoch interval to decay LR')
+    parser.add_argument('--warmup-epochs', type=int, default=20, metavar='N',
+                        help='epochs to warmup LR, if scheduler supports')
+    parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE',
+                        help='LR decay rate (default: 0.1)')
+    
 
     args = parser.parse_args()
     return args
