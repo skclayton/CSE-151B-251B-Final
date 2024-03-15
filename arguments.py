@@ -29,6 +29,8 @@ def params():
                         help='BatchNorm momentum override (if not None)')
     parser.add_argument('--num-classes', type=int, default=None, metavar='N',
                         help='number of label classes (Model default if None)')
+    parser.add_argument('--embed_dim', type=int, default=150, metavar='N',
+                        help='number of label classes (Model default if None)')
     #Optimizer 
     parser.add_argument('--opt', default='adamw', type=str, metavar='OPTIMIZER',
                         help='Optimizer (default: "adamw"')
