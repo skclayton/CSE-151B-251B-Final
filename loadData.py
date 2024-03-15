@@ -2,6 +2,7 @@ from torch.utils import data
 import os
 from os.path import isfile, join
 from PIL import Image
+import numpy as np
 
 def make_dataset(task, mode):
     items = []
@@ -32,7 +33,7 @@ class Dataset(data.Dataset):
             img_path, label = self.imgs[index]
             img = Image.open(img_path).convert('RGB').resize((self.width, self.height))
 
-            return img, label
+            return np.array(img), label
 
     def __len__(self):
         return len(self.imgs) 
