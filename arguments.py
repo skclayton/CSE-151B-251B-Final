@@ -23,7 +23,7 @@ def params():
                 help="Dropout rate for model training")
     parser.add_argument("--adam-epsilon", default=1e-8, type=float,
                 help="Epsilon for Adam optimizer.")
-    parser.add_argument("--n-epochs", default=1, type=int,
+    parser.add_argument("--n-epochs", default=5, type=int,
                 help="Total number of training epochs to perform.")
     parser.add_argument('--bn-momentum', type=float, default=None,
                         help='BatchNorm momentum override (if not None)')

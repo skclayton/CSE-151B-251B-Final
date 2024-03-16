@@ -8,7 +8,7 @@ def make_dataset(task, mode):
     items = []
     
     if task == 'prediction': 
-        root = './dataPrediction'
+        root = '/home/esong1/age_prediction'
         base_path = join(root, mode)
         
         for age in range(1, 101):
