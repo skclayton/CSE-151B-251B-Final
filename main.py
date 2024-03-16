@@ -17,6 +17,9 @@ def train_prediction(args, model,img_processor):
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, eps=args.adam_epsilon)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.8)
     
+    radius = 16
+    radius_decay = 0.707107
+    
     lst = []
     losses =[]
     acc = []
@@ -32,7 +35,17 @@ def train_prediction(args, model,img_processor):
             labels = labels.to(device)
             
             logits = model(inputs).logits
-            #print("labels",labels,"preds",logits.argmax(1))
+            
+            labels = labels.long()
+            labels = nn.functional.one_hot(labels, num_classes=10)
+            for label in labels:
+                idx = torch.argmax(label)
+                for i in range(idx - int(radius), idx + int(radius) + 1):
+                    if i >= 0 and i < len(label):
+                        label[i] = 1
+
+            labels = labels / labels.sum(dim = 1, keepdim=True)
+            
             loss = criterion(logits, labels)
             loss.backward()
             losses += [loss.item()]
@@ -40,6 +53,7 @@ def train_prediction(args, model,img_processor):
             optimizer.step()
 
         scheduler.step()
+        radius *= radius_decay
         
         val_acc,val_loss = run_eval(args,model,img_processor,test_loader)
         lst += [val_loss]
