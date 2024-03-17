@@ -102,13 +102,13 @@ if __name__ == "__main__":
     test_loader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False)
     print(len(train_loader))
     if args.task == 'prediction':
-        model = PredictionModel(args).to(device)
-        
-        #print('device',device)
         
         # baseline NAT model
         image_processor = AutoImageProcessor.from_pretrained("shi-labs/nat-mini-in1k-224")
+        
+        # model = PredictionModel(args).to(device)
         model = NatForImageClassification.from_pretrained("shi-labs/nat-mini-in1k-224").to(device)
+        
         train_prediction(args, model,image_processor)
         
     #     # top 1 accuracy

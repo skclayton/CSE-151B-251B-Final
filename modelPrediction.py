@@ -5,18 +5,13 @@ class PredictionModel(nn.Module):
     def __init__(self, args):
         super().__init__()
         
-        self.processor = AutoImageProcessor.from_pretrained("shi-labs/nat-mini-in1k-224")
         self.encoding = NatForImageClassification.from_pretrained("shi-labs/nat-mini-in1k-224")
-        
-        self.drop_rate = args.drop_rate
-        self.dropout = nn.Dropout(p=self.drop_rate)
         self.classifier = Classifier(args=args)
  
     def forward(self, inputs):
-        processed_inputs = self.processor(inputs, return_tensors="pt")
-        output = self.encoding(**processed_inputs)
-        print(output.shape())
-  
+        outputs = self.encoding(**inputs)
+        return self.classifier(outputs)
+    
 class Classifier(nn.Module):
     def __init__(self, args):
         super().__init__()
