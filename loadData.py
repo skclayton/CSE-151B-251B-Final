@@ -3,6 +3,7 @@ import os
 from os.path import isfile, join
 from PIL import Image
 import numpy as np
+import torchvision.transforms as standard_transforms
 
 def make_dataset(task, mode):
     items = []
@@ -27,13 +28,39 @@ class Dataset(data.Dataset):
             raise RuntimeError('Found 0 images, please check the data set')
         self.width = 128
         self.height = 128
+
+        self.transform = transform
         
     def __getitem__(self, index):
         if self.task == 'prediction':
-            img_path, label = self.imgs[index]
+            img_path, transform = self.imgs[index]
+            label = self.labels[index]
             img = Image.open(img_path).convert('RGB').resize((self.width, self.height))
 
             return np.array(img), label
+        
+        if self.transform is not None:
+            image = self.transform(image)
+        
+        return image, label
 
     def __len__(self):
         return len(self.imgs) 
+    #default
+
+
+
+
+
+    def __getitem__(self, index):
+        img_path, transform = self.img_paths[index]
+        label = self.labels[index]
+        image = Image.open(img_path).convert('RGB').resize((self.width, self.height))
+        
+
+        if self.transform is not None:
+            image = self.transform(image)
+        
+        return image, label
+    
+
