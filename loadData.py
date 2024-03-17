@@ -4,10 +4,30 @@ from os.path import isfile, join
 from PIL import Image
 import numpy as np
 import torchvision.transforms as standard_transforms
+from transform import *
 
 def make_dataset(task, mode):
     items = []
-    
+    root = '/home/esong1/age_prediction'
+    transform = input_transform()
+
+    for class_folder in os.listdir(root):
+        class_path = os.path.join(root, class_folder)
+
+        if os.path.isdir(class_path):
+            files = [f for f in os.listdir(class_path) if os.path.isfile(os.path.join(class_path, f))]
+            apply_transform = len(files) < 1000  
+
+            for f in files:
+                item_path = os.path.join(class_path, f)
+                item = (item_path, class_folder)  
+
+                if apply_transform:
+                    item = (item_path, class_folder, transform)
+
+                items.append(item)
+
+
     if task == 'prediction': 
         root = '/home/esong1/age_prediction'
         base_path = join(root, mode)
@@ -16,6 +36,9 @@ def make_dataset(task, mode):
             path = join(base_path, format(age, '03d'))
             images = [(join(path, f), age) for f in os.listdir(path) if isfile(join(path, f))]
             items.extend(images)
+
+   
+
             
     return items
 
