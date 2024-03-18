@@ -1,27 +1,21 @@
+import torch
 from torch import nn
-from transformers import AutoImageProcessor, NatForImageClassification
+from transformers import ConvNextModel
 
-class PredictionModel(nn.Module):
-    def __init__(self, args):
+class ConvNextClassification(nn.Module):
+    def __init__(self, num_labels, pretrained_model="facebook/convnext-tiny-224"):
         super().__init__()
-        
-        self.encoding = NatForImageClassification.from_pretrained("shi-labs/nat-mini-in1k-224")
-        self.classifier = Classifier(args=args)
- 
-    def forward(self, inputs):
-        outputs = self.encoding(**inputs)
-        return self.classifier(outputs)
-    
-class Classifier(nn.Module):
-    def __init__(self, args):
-        super().__init__()
-        input_dim = args.embed_dim
-        self.top = nn.Linear(input_dim, args.hidden_dim)
-        self.relu = nn.ReLU()
-        self.bottom = nn.Linear(args.hidden_dim, args.n_classes)
+        # Initialize the ConvNext model
+        self.convnext = ConvNextModel.from_pretrained(pretrained_model)
+        # Create a classifier layer
+        # Note: Adjust the input features of nn.Linear based on the output features of your ConvNext model variant
+        self.classifier = nn.Linear(37632, num_labels)
 
-    def forward(self, hidden):
-        middle = self.relu(self.top(hidden))
-        logit = self.bottom(middle)
-        return logit
 
+    def forward(self, pixel_values):
+        outputs = self.convnext(pixel_values)
+        # Flatten the output for the classifier:
+        x = torch.flatten(outputs.last_hidden_state, start_dim=1)  # This flattens all dimensions except the batch
+        # Ensure the flattened size matches the linear layer's input expectation
+        logits = self.classifier(x)
+        return logits
