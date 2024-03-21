@@ -7,60 +7,61 @@ from modelPrediction import PredictionModel
 from torch.utils.data import DataLoader
 import loadData
 from transformers import AutoImageProcessor, NatConfig,NatModel,NatForImageClassification
+from torch.optim.swa_utils import AveragedModel, SWALR
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train_prediction(args, model,img_processor):
+def train_prediction(args, model, img_processor):
     print('training')
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, eps=args.adam_epsilon)
+    swa_model = AveragedModel(model)
+    swa_scheduler = SWALR(optimizer, swa_lr=args.swa_learning_rate)  # Adjust the SWA learning rate as needed
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.8)
     
     radius = 16
     radius_decay = 0.707107
     
     lst = []
-    losses =[]
+    losses = []
     acc = []
+    swa_start = args.swa_start  # Define the epoch to start SWA, adjust in your args
+    
     for epoch_count in range(args.n_epochs):
-        print("epoch",epoch_count)
+        print("epoch", epoch_count)
         loss = 0
-        
         model.train()
 
-        for iter, (inputs, labels) in progress_bar(enumerate(train_loader),total=len(train_loader)):
+        for iter, (inputs, labels) in progress_bar(enumerate(train_loader), total=len(train_loader)):
             model.zero_grad()
-            inputs = img_processor(inputs,return_tensors="pt")['pixel_values'].to(device)
+            inputs = img_processor(inputs, return_tensors="pt")['pixel_values'].to(device)
             labels = labels.to(device)
             
             logits = model(inputs).logits
             
-            labels = labels.long()
-            labels = nn.functional.one_hot(labels, num_classes=10)
-            for label in labels:
-                idx = torch.argmax(label)
-                for i in range(idx - int(radius), idx + int(radius) + 1):
-                    if i >= 0 and i < len(label):
-                        label[i] = 1
-
-            labels = labels / labels.sum(dim = 1, keepdim=True)
-            
-            loss = criterion(logits, labels)
+            # Your existing processing steps...
             loss.backward()
-            losses += [loss.item()]
-
             optimizer.step()
 
-        scheduler.step()
+        if epoch_count >= swa_start:
+            swa_model.update_parameters(model)
+            swa_scheduler.step()
+        else:
+            scheduler.step()
+        
         radius *= radius_decay
         
-        val_acc,val_loss = run_eval(args,model,img_processor,test_loader)
-        lst += [val_loss]
-        acc += [val_acc]
+        val_acc, val_loss = run_eval(args, swa_model if epoch_count >= swa_start else model, img_processor, test_loader)
+        lst.append(val_loss)
+        acc.append(val_acc)
         print('epoch', epoch_count, 'loss:', loss)
     
-    return lst,acc
+    # Update batch normalization layers for the SWA model
+    torch.optim.swa_utils.update_bn(train_loader, swa_model)
+    
+    return lst, acc
         
 def run_eval(args, model,img_processor,loader):
     model.eval()

@@ -45,45 +45,50 @@ def make_dataset(task, mode):
 class Dataset(data.Dataset):
     def __init__(self, args, mode):
         self.task = args.task
-            
-        self.imgs = make_dataset(self.task, mode)
-        if len(self.imgs) == 0:
-            raise RuntimeError('Found 0 images, please check the data set')
-        self.width = 128
-        self.height = 128
+        self.mode = mode  
+        self.imgs = make_dataset(self.task, self.mode)
+        
+        # self.width = 128
+        # self.height = 128
 
-        self.transform = transform
+        self.transform = input_transform
         
     def __getitem__(self, index):
-        if self.task == 'prediction':
-            img_path, transform = self.imgs[index]
-            label = self.labels[index]
-            img = Image.open(img_path).convert('RGB').resize((self.width, self.height))
+        # if self.task == 'prediction':
+        #     img_path, transform = self.imgs[index]
+        #     label = self.labels[index]
+        #     img = Image.open(img_path).convert('RGB').resize((self.width, self.height))
 
-            return np.array(img), label
+        #     return np.array(img), label
         
-        if self.transform is not None:
-            image = self.transform(image)
-        
-        return image, label
+        # if self.transform is not None:
+        #     image = self.transform(image)
+
+        img_path, label = self.imgs[index]  
+
+        img = Image.open(img_path).convert('RGB')  
+        if self.transform:
+            img = self.transform(img)  
+
+        return img, label
+
 
     def __len__(self):
         return len(self.imgs) 
-    #default
 
 
 
 
 
-    def __getitem__(self, index):
-        img_path, transform = self.img_paths[index]
-        label = self.labels[index]
-        image = Image.open(img_path).convert('RGB').resize((self.width, self.height))
+    # def __getitem__(self, index):
+    #     img_path, transform = self.img_paths[index]
+    #     label = self.labels[index]
+    #     image = Image.open(img_path).convert('RGB').resize((self.width, self.height))
         
 
-        if self.transform is not None:
-            image = self.transform(image)
+    #     if self.transform is not None:
+    #         image = self.transform(image)
         
-        return image, label
+    #     return image, label
     
 
